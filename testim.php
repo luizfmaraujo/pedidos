@@ -14,6 +14,7 @@ $numeroPedido = $consulta + 1;
     <link rel="stylesheet" href="css/bootstrap.css" />
     <link rel="stylesheet" href="css/bootstrap.min.css" />
     <script type="text/javascript" src="js/jquery-1.8.3.min.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="js/jquery.tabletojson.min.js" charset="UTF-8"></script>
     <script type="text/javascript">
         $(document).ready(function(){
             $("input[name='codigoCliente']").blur(function(){
@@ -38,6 +39,7 @@ $numeroPedido = $consulta + 1;
                     tr.remove(); 
                 }); 
                 limpaItem();
+                calculaTotal();
                 return false;
             };
             adicionaLinhaTabela = function() {
@@ -48,6 +50,7 @@ $numeroPedido = $consulta + 1;
                     cols += '<td width="3%">';
                     cols += '<button class="btn btn-large btn-danger" onclick="removeLinhaTabela(this)" type="button">Remover</button>';
                     cols += '</td>';
+                    cols += '<td width="40" class="tabelaPedido" style="text-align:center">'+$("#codigo").val();+'</td>';
                     cols += '<td width="40" class="tabelaCodigo" style="text-align:center">'+codigoItem+'</td>';
                     cols += '<td width="240" class="tabelaDescricao">' + $("#descricao").val() + '</td>';
                     cols += '<td width="40" class="tabelaTipo" style="text-align:center">' + $("#tipo").val() + '</td>';
@@ -62,74 +65,70 @@ $numeroPedido = $consulta + 1;
                     return false;
                 }
             }; 
-            teste = function(){
-                var i,  linhasDaTabela = new Array();
-                for( i=0; i < $('.tabelaCodigo').length; i++ ) {
-                    linhasDaTabela[i] = new Object();
-                    linhasDaTabela[i].codigo = $('.tabelaCodigo')[i].value;
-                    linhasDaTabela[i].descricao = $('.tabelaDescricao')[i].value;
-                    linhasDaTabela[i].quantidade = $('.tabelaTipo')[i].value;
-                    linhasDaTabela[i].precouni = $('.tabelaQuantidade')[i].value;
-                    linhasDaTabela[i].precoTotal = $('.tabelaPreco')[i].value;
-                    linhasDaTabela[i].precoTotal = $('.tabelatotalparcial')[i].value;
-                }
-                alert(linhasDaTabela[0].descricao);
-            };
-            calculaSubTotal = function() {
-                var quantidade = $("#quantidade").val();
-                var preco = $("#preco").val();
-                var totalparcial = 0;
-                totalparcial = quantidade * preco;
-                totalparcial= totalparcial.toFixed(2);
-                $("#subtotal").val(totalparcial);
-            };
-            calculaTotal = function() {
-                var valorCalculado = 0;
-                var desconto = $("#desconto").val();
-                $( ".tabelatotalparcial" ).each(function() {
-                    valorCalculado += parseFloat($( this ).text());
-                });
-                valorCalculado = valorCalculado-desconto;
-                $( "#total" ).val(valorCalculado.toFixed(2));
-            };
-            limpaItem = function() {
-                $( "#descricao" ).val("");
-                $("#tipo").val("");
-                $( "#quantidade" ).val("1");
-                $( "#preco" ).val("");
-                $( "#subtotal" ).val("");
-            };
-            validaItem = function() {
-                $( "#mensagens" ).css( "display", "block" );
-                if($( "#descricao" ).val() == ""){
-                    $( "#descricao" ).focus();
-                    $("#mensagem").html("O campo Descrição deve ser preenchido");
-                    return false;
-                }if($( "#preco" ).val() == ""){
-                    $( "#preco" ).focus();
-                    $("#mensagem").html("O campo Preço deve ser preenchido");
-                    return false;
-                }if($( "#quantidade" ).val() == ""){
-                    $( "#quantidade" ).focus();
-                    $("#mensagem").html("O campo Quantidade deve ser preenchido");
-                    return false;
-                }
-                else{
-                    $( "#mensagens" ).css( "display", "none" );
-                    return true;
-                }
-            };
-            retornaUltimoCodigo = function(){
-                var codigo = $("#codigoItem").text();
-                codigo = parseInt(codigo);
-                if(codigo > 0){
-                    return codigo;
-                } else {
-                    return 0;
-                }
-            };
-        })(jQuery);
-    </script>
+            gravaItensPedido = function(){
+              var tabela = $('#tabelaItens').tableToJSON();
+              var dadosTabela = JSON.stringify(tabela);
+              //dados = dados.replace("[","");
+              //dados = dados.replace("]","");
+              var itensPedido = '{"itens":'+dadosTabela+'}';
+              console.log(itensPedido);
+              $("#retorno").load("insereItemPedido.php?itens="+itensPedido); 
+          };
+          calculaSubTotal = function() {
+            var quantidade = $("#quantidade").val();
+            var preco = $("#preco").val();
+            var totalparcial = 0;
+            totalparcial = quantidade * preco;
+            totalparcial= totalparcial.toFixed(2);
+            $("#subtotal").val(totalparcial);
+        };
+        calculaTotal = function() {
+            var valorCalculado = 0;
+            var desconto = $("#desconto").val();
+            $( ".tabelatotalparcial" ).each(function() {
+                valorCalculado += parseFloat($( this ).text());
+            });
+            valorCalculado = valorCalculado-desconto;
+            $( "#total" ).val(valorCalculado.toFixed(2));
+        };
+        limpaItem = function() {
+            $( "#descricao" ).val("");
+            $("#tipo").val("");
+            $( "#quantidade" ).val("1");
+            $( "#preco" ).val("");
+            $( "#subtotal" ).val("");
+        };
+        validaItem = function() {
+            $( "#mensagens" ).css( "display", "block" );
+            if($( "#descricao" ).val() == ""){
+                $( "#descricao" ).focus();
+                $("#mensagem").html("O campo Descrição deve ser preenchido");
+                return false;
+            }if($( "#preco" ).val() == ""){
+                $( "#preco" ).focus();
+                $("#mensagem").html("O campo Preço deve ser preenchido");
+                return false;
+            }if($( "#quantidade" ).val() == ""){
+                $( "#quantidade" ).focus();
+                $("#mensagem").html("O campo Quantidade deve ser preenchido");
+                return false;
+            }
+            else{
+                $( "#mensagens" ).css( "display", "none" );
+                return true;
+            }
+        };
+        retornaUltimoCodigo = function(){
+            var codigo = $("#codigoItem").text();
+            codigo = parseInt(codigo);
+            if(codigo > 0){
+                return codigo;
+            } else {
+                return 0;
+            }
+        };
+    })(jQuery);
+</script>
 </head>
 <body>
     <h2>Pedidos</h2>
@@ -234,6 +233,7 @@ $numeroPedido = $consulta + 1;
                 <tbody>
                     <tr>
                         <th style="text-align:center">Excluir</th>
+                        <th style="text-align:center">Pedido</th>
                         <th style="text-align:center">Código</th>
                         <th>Produto</th>
                         <th style="text-align:center">Tipo</th>
@@ -242,6 +242,8 @@ $numeroPedido = $consulta + 1;
                         <th style="text-align:center">Subtotal</th>
                     </tr>   
                 </tbody>
+            </table>
+            <table id="tabelaTotalDesconto" class="table table-striped table-bordered table-hover">
                 <tfoot>
                     <tr>
                         <td colspan="7" style="text-align: right;font-size: 25px">
@@ -252,16 +254,16 @@ $numeroPedido = $consulta + 1;
                         </td>
                     </tr>
                 </tfoot>
-            </table>
+            </table> 
         </div>
         <!-- Botões -->
         <div class="control-group" style="float: right;">
             <div class="controls" >
                 <button id="button1id" name="button1id" class="btn btn-danger" >Limpar Pedido</button>
                 <button id="button2id" name="button2id" class="btn btn-success" type="submit">Salvar</button>
-                <p><a class="btn btn-primary" onclick="teste();" role="button">Adicionar</a></p>
             </div>
         </div>
     </form>
+    <div id="retorno"></div>
 </body>
 </html>

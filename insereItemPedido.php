@@ -1,24 +1,28 @@
 <?php
-echo "teste";
-$servidor = 'localhost';
-$usuario = 'root';
-$senha = '';
-$banco = 'nayara';
-$link = mysqli_connect($servidor,$usuario,$senha,$banco);
+	
+	include('conexao.php');
+	$itens = $_GET['itens'];	
+	
+	$dados = json_decode($itens);
 
-$jsondata = file_get_contents('table.json');
-$data = json_decode($jsondata, true);
+	//cria o array de itensPedido
+	$itensPedido = $dados->itens;
 
-echo $data;
+	foreach ( $itensPedido as $ip )	
+	{
+	    //echo "nome: $ip->Tipo - idade: $ip->Quantidade - sexo: $ip->Produto<br/>";
+		$produto = $ip->Produto;
+		$tipo = $ip->Tipo;
+		$quantidade = $ip->Quantidade;
+		$subtotal = $ip->Subtotal;
+		$preco = $ip->Preço;
+		$num_pedido = $ip->Pedido;
 
-//$stmt = $db->prepare("insert into item_pedido values(?,?)");
-
-//foreach ($data['retorno']['produtos'] as $row) {
-//	$stmt->bindParam(1, $row['produto']['codigo']);
-//	$stmt->bindParam(2, $row['produto']['estoqueAtual']);
-  //  $stmt->bindParam(1, $row['produto']['codigo']);
-	//$stmt->execute();
-//}
+		$sql = "INSERT INTO item_pedido (descricao, quantidade, preco, subtotal, cod_pedido) VALUES ('$produto', '$quantidade', '$preco','$subtotal','$num_pedido')";
+		$result = mysqli_query($_SESSION['conexao'],$sql); 
+		if ($result = null) {
+			echo "Erro na inserção do item";
+		} 
+	}
+		echo "itens inseridos com sucesso!!!";
 ?>
-
-
